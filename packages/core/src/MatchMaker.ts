@@ -34,14 +34,16 @@ const rooms: {[roomId: string]: Room} = {};
 export let processId: string;
 export let presence: Presence;
 export let driver: MatchMakerDriver;
+export let namespace: string;
 
 let isGracefullyShuttingDown: boolean;
 
-export function setup(_presence?: Presence, _driver?: MatchMakerDriver, _processId?: string) {
+export function setup(_presence?: Presence, _driver?: MatchMakerDriver, _processId?: string,_namespace?: string) {
   presence = _presence || new LocalPresence();
   driver = _driver || new LocalDriver();
   processId = _processId;
   isGracefullyShuttingDown = false;
+  namespace = _namespace;
 
   /**
    * Subscribe to remote `handleCreateRoom` calls.
@@ -499,17 +501,17 @@ async function disposeRoom(roomName: string, room: Room) {
 //
 
 function getRoomChannel(roomId: string) {
-  return `$${roomId}`;
+  return (namespace || "")+`$${roomId}`;
 }
 
 function getHandlerConcurrencyKey(name: string) {
-  return `c:${name}`;
+  return (namespace || "")+`c:${name}`;
 }
 
 function getProcessChannel(id: string = processId) {
-  return `p:${id}`;
+  return (namespace || "")+`p:${id}`;
 }
 
 function getRoomCountKey() {
-  return 'roomcount';
+  return (namespace || "")+'roomcount';
 }

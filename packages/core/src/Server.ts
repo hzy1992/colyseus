@@ -63,7 +63,7 @@ export class Server {
     this.namespace = options.namespace;
 
     // setup matchmaker
-    matchMaker.setup(this.presence, this.driver, this.processId);
+    matchMaker.setup(this.presence, this.driver, this.processId,this.namespace);
 
     // "presence" option is not used from now on
     delete options.presence;
