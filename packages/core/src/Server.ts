@@ -23,6 +23,7 @@ export type ServerOptions = {
   driver?: matchMaker.MatchMakerDriver,
   transport?: Transport,
   gracefullyShutdown?: boolean,
+  namespace?: string,
 
   /**
    * Options below are now part of WebSocketTransport (@colyseus/ws-transport)
@@ -52,11 +53,14 @@ export class Server {
   private matchmakeRoute = 'matchmake';
   private allowedRoomNameChars = /([a-zA-Z_\-0-9]+)/gi;
 
+  private namespace: string;
+
   constructor(options: ServerOptions = {}) {
     const { gracefullyShutdown = true } = options;
 
     this.presence = options.presence || new LocalPresence();
     this.driver = options.driver || new LocalDriver();
+    this.namespace = options.namespace;
 
     // setup matchmaker
     matchMaker.setup(this.presence, this.driver, this.processId);
@@ -138,6 +142,7 @@ export class Server {
     registerNode(this.presence, {
       port: this.port,
       processId: this.processId,
+      namespace: this.namespace
     });
   }
 
@@ -163,6 +168,7 @@ export class Server {
       await unregisterNode(this.presence, {
         port: this.port,
         processId: this.processId,
+        namespace: this.namespace
       });
 
       await matchMaker.gracefullyShutdown();
