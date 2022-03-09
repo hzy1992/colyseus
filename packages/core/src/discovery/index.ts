@@ -7,6 +7,7 @@ const DISCOVERY_CHANNEL = 'colyseus:nodes:discovery';
 export interface Node {
   port: number;
   processId: string;
+  namespace: string;
 }
 
 async function getNodeAddress(node: Node) {
@@ -17,12 +18,12 @@ async function getNodeAddress(node: Node) {
 
 export async function registerNode(presence: Presence, node: Node) {
   const nodeAddress = await getNodeAddress(node);
-  await presence.sadd(NODES_SET, nodeAddress);
-  await presence.publish(DISCOVERY_CHANNEL, `add,${nodeAddress}`);
+  await presence.sadd((node.namespace || "")+NODES_SET, nodeAddress);
+  await presence.publish((node.namespace || "")+DISCOVERY_CHANNEL, `add,${nodeAddress}`);
 }
 
 export async function unregisterNode(presence: Presence, node: Node) {
   const nodeAddress = await getNodeAddress(node);
-  await presence.srem(NODES_SET, nodeAddress);
-  await presence.publish(DISCOVERY_CHANNEL, `remove,${nodeAddress}`);
+  await presence.srem((node.namespace || "")+NODES_SET, nodeAddress);
+  await presence.publish((node.namespace || "")+DISCOVERY_CHANNEL, `remove,${nodeAddress}`);
 }

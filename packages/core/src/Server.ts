@@ -22,6 +22,8 @@ export type ServerOptions = {
   transport?: Transport,
   gracefullyShutdown?: boolean,
 
+  namespace?: string,
+
   /**
    * Options below are now part of WebSocketTransport (@colyseus/ws-transport)
    * TODO: remove me on 0.15.0
@@ -50,6 +52,8 @@ export class Server {
   private matchmakeRoute = 'matchmake';
   private allowedRoomNameChars = /([a-zA-Z_\-0-9]+)/gi;
 
+  private namespace: string;
+
   constructor(options: ServerOptions = {}) {
     const { gracefullyShutdown = true } = options;
 
@@ -63,6 +67,7 @@ export class Server {
     delete options.presence;
 
     this.attach(options);
+    this.namespace = options.namespace;
 
     if (gracefullyShutdown) {
       registerGracefulShutdown((err) => this.gracefullyShutdown(true, err));
@@ -136,6 +141,7 @@ export class Server {
     registerNode(this.presence, {
       port: this.port,
       processId: this.processId,
+      namespace: this.namespace
     });
   }
 
@@ -158,6 +164,7 @@ export class Server {
     await unregisterNode(this.presence, {
       port: this.port,
       processId: this.processId,
+      namespace: this.namespace
     });
 
     try {
