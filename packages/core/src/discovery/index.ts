@@ -1,4 +1,4 @@
-import ip from 'internal-ip';
+
 import { Presence } from '../presence/Presence';
 
 const NODES_SET = 'colyseus:nodes';
@@ -9,9 +9,26 @@ export interface Node {
   processId: string;
   namespace: string;
 }
+const os = require('os');
+///////////////////获取本机ip///////////////////////
+function getIPAdress() {
+    var interfaces = os.networkInterfaces();
+    console.log('interfaces',interfaces);
+    for (var devName in interfaces) {
+        var iface = interfaces[devName];
+        for (var i = 0; i < iface.length; i++) {
+            var alias = iface[i];
+            if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+                return alias.address;
+            }
+        }
+    }
+}
+const myHost = getIPAdress();
+
 
 async function getNodeAddress(node: Node) {
-  const host = process.env.SELF_HOSTNAME || await ip.v4();
+  const host = process.env.SELF_HOSTNAME || myHost;
   const port = process.env.SELF_PORT || node.port;
   return `${node.processId}/${host}:${port}`;
 }
