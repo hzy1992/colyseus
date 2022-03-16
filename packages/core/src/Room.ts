@@ -687,7 +687,7 @@ export abstract class Room<State= any, Metadata= any> {
 
       // update room listing cache
       await this.listing.updateOne({
-        $inc: { clients: -1 },
+        $inc: { clients: this.listing.clients<=0?0:-1 },
         $set: { locked: this._locked },
       });
     }
