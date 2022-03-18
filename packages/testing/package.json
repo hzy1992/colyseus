@@ -1,6 +1,6 @@
 {
   "name": "@colyseus/testing",
-  "version": "0.14.23",
+  "version": "0.14.24",
   "description": "Testing tools for Colyseus",
   "input": "./src/index.ts",
   "main": "./build/index.js",
@@ -26,13 +26,13 @@
     "node": ">= 14.x"
   },
   "dependencies": {
-    "@colyseus/arena": "^0.14.25",
-    "@colyseus/core": "^0.14.29",
+    "@colyseus/arena": "^0.14.26",
+    "@colyseus/core": "^0.14.30",
     "colyseus.js": "^0.14.13",
     "httpie": "^2.0.0-next.13"
   },
   "devDependencies": {
-    "@colyseus/ws-transport": "^0.14.22"
+    "@colyseus/ws-transport": "^0.14.23"
   },
   "publishConfig": {
     "access": "public"
