@@ -666,7 +666,7 @@ export abstract class Room<State= any, Metadata= any> {
     }
 
     await this.listing.updateOne({
-      $set: { locked: this._locked,clients: this.clients.length},
+      $set: { locked: this._locked,clients: this.clients.length+1},
     });
   }
 
@@ -686,7 +686,7 @@ export abstract class Room<State= any, Metadata= any> {
 
       // update room listing cache
       await this.listing.updateOne({
-        $set: { locked: this._locked,clients: this.clients.length },
+        $set: { locked: this._locked,clients: this.clients.length-1 },
       });
     }
 
