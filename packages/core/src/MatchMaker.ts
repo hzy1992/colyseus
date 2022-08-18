@@ -18,6 +18,7 @@ import * as controller from './matchmaker/controller';
 
 import { Client } from './Transport';
 import { Type } from './types';
+import { randomInt } from 'crypto';
 
 export { MatchMakerDriver, controller };
 
@@ -53,6 +54,35 @@ export function setup(_presence?: Presence, _driver?: MatchMakerDriver, _process
   });
 
   presence.hset(getRoomCountKey(), processId, '0');
+
+  let healthCheck = 0;
+  //处理colyseus的bug，暂时找不到bug原因，补救措施是加健康检查
+  setInterval(async ()=>{
+    const cachedRooms = await driver.find({});
+    await Promise.all(cachedRooms.map(async (room) => {
+      if(randomInt(1,4) == 2){
+        try {
+          // use hardcoded short timeout for cleaning up stale rooms.
+          await remoteRoomCall(room.roomId, 'roomId');
+
+        } catch (e) {
+          debugMatchMaking(`cleaning up stale room '${room.name}', roomId: ${room.roomId}`);
+          room.remove();
+        }
+      }
+    }));
+    requestFromIPC(presence,getProcessChannel(),"1",["Check",{}],2000).then((v)=>{
+      healthCheck = 0;
+    },(e)=>{
+      if(e && e.indexOf("IPC timed out") != -1){
+        healthCheck++;
+        if(healthCheck>=2){
+          console.error("MatchMaker process health check faild 2. exit...");
+          process.exit(1);
+        }
+      }
+    })
+  },6000);
 }
 
 /**
@@ -60,6 +90,8 @@ export function setup(_presence?: Presence, _driver?: MatchMakerDriver, _process
  */
 export async function joinOrCreate(roomName: string, clientOptions: ClientOptions = {}) {
   return await retry<Promise<SeatReservation>>(async () => {
+
+
     let room = await findOneRoomAvailable(roomName, clientOptions);
 
     if (!room) {
@@ -160,6 +192,25 @@ export async function findOneRoomAvailable(roomName: string, clientOptions: Clie
   });
 }
 
+
+export async function findAllRoomAvailable(roomName: string, clientOptions: ClientOptions): Promise<RoomListingData[]> {
+    const handler = handlers[roomName];
+    if (!handler) {
+      throw new ServerError( ErrorCode.MATCHMAKE_NO_HANDLER, `provided room name "${roomName}" not defined`);
+    }
+
+    const roomQuery = driver.find({
+      locked: false,
+      name: roomName,
+      private: false,
+      ...handler.getFilterOptions(clientOptions),
+    },{ _id: 1 });
+
+
+    return await roomQuery;
+  
+}
+
 /**
  * Call a method or return a property on a remote room.
  */
@@ -247,7 +298,8 @@ export async function createRoom(roomName: string, clientOptions: ClientOptions)
     } catch (e) {
       // if other process failed to respond, create the room on this process
       debugAndPrintError(e);
-      room = await handleCreateRoom(roomName, clientOptions);
+      // room = await handleCreateRoom(roomName, clientOptions);
+      throw e;
     }
 
     return room;
@@ -267,6 +319,7 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
   room.roomId = generateId();
   room.roomName = roomName;
   room.presence = presence;
+
 
   // create a RoomCache reference.
   room.listing = driver.createInstance({
@@ -309,6 +362,14 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
   // room always start unlocked
   await createRoomReferences(room, true);
   await room.listing.save();
+
+  // let r = await findAllRoomAvailable(roomName,clientOptions);
+
+  // if(r.length >1){
+  
+  //   room.disconnect();
+  //   throw new ServerError(ErrorCode.APPLICATION_ERROR, `room create concurrency error`);
+  // }
 
   registeredHandler.emit('create', room);
 
