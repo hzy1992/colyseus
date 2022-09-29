@@ -71,10 +71,12 @@ export function setup(_presence?: Presence, _driver?: MatchMakerDriver, _process
         }
       }
     }));
-    requestFromIPC(presence,getProcessChannel(),"1",["Check",{}],2000).then((v)=>{
+    
+    requestFromIPC(presence,getProcessChannel(),"1",["Scene",{dbRoomId:1}],2000).then((v)=>{
       healthCheck = 0;
     },(e)=>{
-      if(e && e.indexOf("IPC timed out") != -1){
+      if(e && e.indexOf("dbRoomId not exist") == -1){
+        console.error(` health check : ${e}`)
         healthCheck++;
         if(healthCheck>=2){
           console.error("MatchMaker process health check faild 2. exit...");
