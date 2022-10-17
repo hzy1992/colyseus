@@ -173,7 +173,12 @@ export async function query(conditions: Partial<IRoomListingData> = {}) {
  * Find for a public and unlocked room available
  */
 export async function findOneRoomAvailable(roomName: string, clientOptions: ClientOptions): Promise<RoomListingData> {
-  return await awaitRoomAvailable(roomName, async () => {
+  const handler = handlers[roomName];
+  let key = roomName;
+  if(handler){
+    key += ":"+JSON.stringify(handler.getFilterOptions(clientOptions));
+  }
+  return await awaitRoomAvailable(key, async () => {
     const handler = handlers[roomName];
     if (!handler) {
       throw new ServerError( ErrorCode.MATCHMAKE_NO_HANDLER, `provided room name "${roomName}" not defined`);
@@ -339,6 +344,9 @@ async function handleCreateRoom(roomName: string, clientOptions: ClientOptions):
 
     } catch (e) {
       debugAndPrintError(e);
+      if(e instanceof SeatReservationError){
+        throw e;
+      }
       throw new ServerError(
         e.code || ErrorCode.MATCHMAKE_UNHANDLED,
         e.message,
@@ -449,11 +457,17 @@ async function cleanupStaleRooms(roomName: string) {
   //
   const cachedRooms = await driver.find({ name: roomName }, { _id: 1 });
 
-  // remove connecting counts
-  await presence.del(getHandlerConcurrencyKey(roomName));
+
 
   await Promise.all(cachedRooms.map(async (room) => {
     try {
+      let r = rooms[room.roomId];
+      const handler = handlers[roomName];
+      let key = roomName;
+      if(handler){
+        key += ":"+JSON.stringify(handler.getFilterOptions(room));
+        presence.del(getHandlerConcurrencyKey(key));
+      }
       // use hardcoded short timeout for cleaning up stale rooms.
       await remoteRoomCall(room.roomId, 'roomId');
 
@@ -466,6 +480,7 @@ async function cleanupStaleRooms(roomName: string) {
 
 async function createRoomReferences(room: Room, init: boolean = false): Promise<boolean> {
   rooms[room.roomId] = room;
+  console.log("------ room:"+room)
 
   if (init) {
     await subscribeIPC(
@@ -549,8 +564,10 @@ async function disposeRoom(roomName: string, room: Room) {
   // emit disposal on registered session handler
   handlers[roomName].emit('dispose', room);
 
+  
+
   // remove concurrency key
-  presence.del(getHandlerConcurrencyKey(roomName));
+  presence.del(getHandlerConcurrencyKey(roomName+":"+JSON.stringify(handlers[roomName].getFilterOptions(room))));
 
   // unsubscribe from remote connections
   presence.unsubscribe(getRoomChannel(room.roomId));

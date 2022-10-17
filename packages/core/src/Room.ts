@@ -24,7 +24,7 @@ const DEFAULT_PATCH_RATE = 1000 / 20; // 20fps (50ms)
 const DEFAULT_SIMULATION_INTERVAL = 1000 / 60; // 60fps (16.66ms)
 const noneSerializer = new NoneSerializer();
 
-export const DEFAULT_SEAT_RESERVATION_TIME = Number(process.env.COLYSEUS_SEAT_RESERVATION_TIME || 15);
+export const DEFAULT_SEAT_RESERVATION_TIME = Number(process.env.COLYSEUS_SEAT_RESERVATION_TIME || 20);
 
 export type SimulationCallback = (deltaTime: number) => void;
 
@@ -666,7 +666,8 @@ export abstract class Room<State= any, Metadata= any> {
     }
 
     await this.listing.updateOne({
-      $set: { locked: this._locked,clients: this.clients.length+1},
+      $set: { locked: this._locked},
+      $inc: { clients: 1}
     });
   }
 
@@ -686,7 +687,8 @@ export abstract class Room<State= any, Metadata= any> {
 
       // update room listing cache
       await this.listing.updateOne({
-        $set: { locked: this._locked,clients: this.clients.length-1 },
+        $set: { locked: this._locked },
+        $inc: { clients: -1}
       });
     }
 

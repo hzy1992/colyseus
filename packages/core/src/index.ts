@@ -6,6 +6,7 @@ export { Room, RoomInternalState } from './Room';
 export { Protocol, ErrorCode, getMessageBytes } from './Protocol';
 export { RegisteredHandler } from './matchmaker/RegisteredHandler';
 export { ServerError } from './errors/ServerError';
+export { SeatReservationError } from './errors/SeatReservationError'
 
 // MatchMaker
 import * as matchMaker from './MatchMaker';

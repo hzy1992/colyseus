@@ -1,16 +1,16 @@
 {
   "name": "@colyseus/example",
   "private": true,
-  "version": "0.14.38-alpha.3",
+  "version": "0.14.30",
   "author": "Endel Dreyer",
   "license": "MIT",
   "scripts": {
     "start": "ts-node-dev src/Server.ts"
   },
   "dependencies": {
-    "colyseus": "^0.14.28-alpha.3"
+    "colyseus": "file:../"
   },
   "devDependencies": {
-    "@colyseus/monitor": "^0.14.27-alpha.3"
+    "@colyseus/monitor": "file:../"
   }
 }
