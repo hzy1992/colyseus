@@ -569,10 +569,9 @@ async function disposeRoom(roomName: string, room: Room) {
   // emit disposal on registered session handler
   handlers[roomName].emit('dispose', room);
 
-  
 
   // remove concurrency key
-  presence.del(getHandlerConcurrencyKey(roomName+":"+JSON.stringify(handlers[roomName].getFilterOptions(room))));
+  presence.del(getHandlerConcurrencyKey(roomName+":"+JSON.stringify(handlers[roomName].getFilterOptions(room.listing))));
 
   // unsubscribe from remote connections
   presence.unsubscribe(getRoomChannel(room.roomId));
