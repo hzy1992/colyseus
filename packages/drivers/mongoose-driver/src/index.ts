@@ -66,10 +66,10 @@ export class MongooseDriver implements MatchMakerDriver {
   }
 
   public async clear() {
-    await RoomCache.deleteMany({});
+    await RoomCache.deleteMany({}).catch((e)=>{});
   }
 
   public async shutdown() {
-    await mongoose.disconnect();
+    await mongoose.disconnect().catch((e)=>{});
   }
 }

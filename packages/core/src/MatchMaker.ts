@@ -67,7 +67,9 @@ export function setup(_presence?: Presence, _driver?: MatchMakerDriver, _process
 
         } catch (e) {
           debugMatchMaking(`cleaning up stale room '${room.name}', roomId: ${room.roomId}`);
-          room.remove();
+          try{
+            await room.remove();
+          }catch(e){}
         }
       }
     }));
@@ -473,14 +475,17 @@ async function cleanupStaleRooms(roomName: string) {
 
     } catch (e) {
       debugMatchMaking(`cleaning up stale room '${roomName}', roomId: ${room.roomId}`);
-      room.remove();
+      try{
+        await room.remove();
+      }catch(e){
+
+      }
     }
   }));
 }
 
 async function createRoomReferences(room: Room, init: boolean = false): Promise<boolean> {
   rooms[room.roomId] = room;
-  console.log("------ room:"+room)
 
   if (init) {
     await subscribeIPC(
@@ -558,7 +563,7 @@ async function disposeRoom(roomName: string, room: Room) {
 
   // remove from room listing (already removed if `disconnect()` has been called)
   if (room.internalState !== RoomInternalState.DISCONNECTING) {
-    await room.listing.remove();
+    await room.listing.remove().catch(e=>{});
   }
 
   // emit disposal on registered session handler
