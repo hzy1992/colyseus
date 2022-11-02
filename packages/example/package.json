@@ -1,7 +1,7 @@
 {
   "name": "@colyseus/example",
   "private": true,
-  "version": "0.14.45",
+  "version": "0.14.74",
   "author": "Endel Dreyer",
   "license": "MIT",
   "scripts": {

@@ -307,8 +307,8 @@ export async function createRoom(roomName: string, clientOptions: ClientOptions)
     } catch (e) {
       // if other process failed to respond, create the room on this process
       debugAndPrintError(e);
-      // room = await handleCreateRoom(roomName, clientOptions);
-      throw e;
+      room = await handleCreateRoom(roomName, clientOptions);
+      // throw e;
     }
 
     return room;
